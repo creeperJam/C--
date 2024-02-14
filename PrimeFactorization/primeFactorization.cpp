@@ -2,8 +2,17 @@
 #include <math.h>
 #include <vector>
 
-std::vector<int> fattorizzazione(int n);
-void printVector(std::vector<int> vector);
+struct powers
+{
+    int num;
+    int power;
+};
+
+std::vector<int> primeFactors(int n);
+std::string printIntegerVector(std::vector<int> vector);
+std::string printPowersVector(std::vector<powers> vector);
+std::vector<int> vectorSort(std::vector<int> vector);
+std::vector<powers> commonFactorsGrouper(std::vector<int> vector);
 
 int main(int argc, char const *argv[])
 {
@@ -12,9 +21,11 @@ int main(int argc, char const *argv[])
     std::cout << "Enter a number: ";
     std::cin >> number;
 
-    std::vector<int> fattori = fattorizzazione(number);
+    std::vector<int> fattori = vectorSort(primeFactors(number));
+    std::cout << "The prime factors of the number " << number << " are: " << printIntegerVector(fattori) << std::endl;
+    std::vector<powers> commonFactors = commonFactorsGrouper(fattori);
 
-    std::cout << "La fattorizzazione del numero " << number << " in numeri primi è: " << fattori[0] << " * " << fattori[1] << std::endl;
+    std::cout << "Grouped into the form n^k, [n, k], they become:" << printPowersVector(commonFactors) << std::endl;
 
     std::cin.clear();                                                   // reset any error flags
     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n'); // ignore any characters in the input buffer until we find an enter character
@@ -23,7 +34,63 @@ int main(int argc, char const *argv[])
     return 0;
 }
 
-std::vector<int> fattorizzazione(int n)
+std::vector<powers> commonFactorsGrouper(std::vector<int> primeFactors)
+{
+    int lastValue = primeFactors[0];
+    int index = 0;
+    int size = 1;
+    for (int i = 1; i < primeFactors.size(); i++)
+    {
+        if (primeFactors[i] != lastValue)
+        {
+            size++;
+            lastValue = primeFactors[i];
+        }
+    }
+
+    std::vector<powers> commonFactors(size);
+
+    commonFactors[0] = powers{primeFactors[0], 1};
+    lastValue = primeFactors[0];
+    for (int i = 1; i < primeFactors.size(); i++)
+    {
+        if (primeFactors[i] == lastValue)
+        {
+            commonFactors[index] = powers{lastValue, commonFactors[index].power + 1};
+        }
+        else
+        {
+            index++;
+            commonFactors[index] = powers{primeFactors[i], 1};
+        }
+    }
+
+    return commonFactors;
+}
+
+std::vector<int> vectorSort(std::vector<int> vector)
+{
+    // bool sorted = true;
+
+    for (int i = 0; i < vector.size() - 1; i++)
+    {
+        for (int j = i + 1; j < vector.size(); j++)
+        {
+            if (vector[j] < vector[i])
+            {
+                int app = vector[i];
+                vector[i] = vector[j];
+                vector[j] = app;
+            }
+        }
+
+        // if (sorted) break;
+    }
+
+    return vector;
+}
+
+std::vector<int> primeFactors(int n)
 {
     if (n < 0)
         return std::vector<int>(2, 0);
@@ -52,14 +119,14 @@ std::vector<int> fattorizzazione(int n)
         fattori[1] = n / 2;
     }
 
-    // printVector(fattori);
+    // printIntegerVector(fattori);
 
     if (fattori[0] == 1 || fattori[1] == 1)
         return fattori;
     else
     {
-        std::vector<int> fat1 = fattorizzazione(fattori[0]);
-        std::vector<int> fat2 = fattorizzazione(fattori[1]);
+        std::vector<int> fat1 = primeFactors(fattori[0]);
+        std::vector<int> fat2 = primeFactors(fattori[1]);
         int size = 0;
         int index = 0;
 
@@ -75,8 +142,6 @@ std::vector<int> fattorizzazione(int n)
                 size++;
         }
 
-        std::cout << "Dimensione finale: " << size << std::endl;
-
         fattori.clear();
         fattori.resize(size, 0);
 
@@ -91,27 +156,41 @@ std::vector<int> fattorizzazione(int n)
             if (fat2[i] != 1)
                 fattori[index++] = fat2[i];
         }
-
-        printVector(fattori);
     }
 
     return fattori;
 }
 
-// std::vector<int> primeFactorsChecker(int n)
-// {
-// }
-
-void printVector(std::vector<int> vector)
+std::string printIntegerVector(std::vector<int> vector)
 {
-    std::cout << "[";
+    std::string s = "[";
 
     for (int i = 0; i < vector.size(); i++)
     {
-        std::cout << (vector[i]);
+        s += std::to_string(vector[i]);
         if (i != vector.size() - 1)
-            std::cout << ", ";
+            s += ", ";
     }
 
-    std::cout << "]" << std::endl;
+    s += "]";
+
+    return s;
+}
+
+std::string printPowersVector(std::vector<powers> vector)
+{
+    std::string s = "[";
+
+    for (int i = 0; i < vector.size(); i++)
+    {
+        powers app = vector[i];
+
+        s += "[" + std::to_string(app.num) + ", " + std::to_string(app.power) + "]";
+        if (i != vector.size() - 1)
+            s += ", ";
+    }
+
+    s += "]";
+
+    return s;
 }
